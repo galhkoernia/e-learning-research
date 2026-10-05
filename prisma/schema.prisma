@@ -11,3 +11,112 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum AssessmentType {
+  PRE_TEST
+  QUIZ_1
+  QUIZ_2
+  POST_TEST
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+}
+
+model Profile {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  fullName  String?
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+model Course {
+  id          String     @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  materials   Material[]
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("courses")
+}
+
+model Material {
+  id          String        @id @default(uuid()) @db.Uuid
+  courseId    String        @db.Uuid
+  course      Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  number      Int
+  title       String
+  description String?
+  status      PublishStatus @default(DRAFT)
+  video       Video?
+  questions   Question[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([courseId, number])
+  @@map("materials")
+}
+
+model Video {
+  id              String        @id @default(uuid()) @db.Uuid
+  materialId      String        @unique @db.Uuid
+  material        Material      @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  title           String
+  // Path inside a private bucket, never a public URL.
+  storagePath     String?
+  durationSeconds Int?
+  status          PublishStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("videos")
+}
+
+model Question {
+  id         String           @id @default(uuid()) @db.Uuid
+  courseId   String           @db.Uuid
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  materialId String?          @db.Uuid
+  material   Material?        @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  assessment AssessmentType
+  position   Int
+  text       String           @db.Text
+  type       QuestionType
+  status     PublishStatus    @default(DRAFT)
+  options    QuestionOption[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([courseId, assessment, position])
+  @@map("questions")
+}
+
+// Never select answer keys into student-facing queries or browser payloads.
+model QuestionOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @db.Uuid
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  position   Int
+  label      String
+  isCorrect  Boolean  @default(false)
+
+  @@unique([questionId, position])
+  @@map("question_options")
+}
