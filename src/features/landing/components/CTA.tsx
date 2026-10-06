@@ -22,7 +22,16 @@ export function CTA() {
 
           <div className="mt-8">
             <Link href="/login">
-              <Button className="bg-white text-blue-700 hover:bg-blue-50">
+              <Button
+                className="
+                  border-white!
+                  bg-white!
+                  text-blue-700!
+                  shadow-sm
+                  hover:bg-blue-50!
+                  hover:text-blue-800!
+                "
+              >
                 Mulai Belajar
               </Button>
             </Link>
