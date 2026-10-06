@@ -5,7 +5,10 @@ import { getPrisma } from "@/server/db/prisma";
 import { getHomePathForRole } from "./redirects";
 export async function getCurrentUser() {
  try { const supabase = await createClient(); const { data, error } = await supabase.auth.getUser(); return error ? null : data.user; }
- catch { return null; }
+ catch {
+  if (process.env.NODE_ENV === "development") console.warn("[auth] Session verification unavailable.");
+  return null;
+ }
 }
 export async function requireUser() {
  const user = await getCurrentUser();
@@ -14,7 +17,10 @@ export async function requireUser() {
 }
 export async function getProfile(userId: string) {
  try { return await getPrisma().profile.findUnique({ where: { id: userId }, select: { id: true, role: true } }); }
- catch { return null; }
+ catch {
+  if (process.env.NODE_ENV === "development") console.warn("[auth] Profile database query failed.");
+  return null;
+ }
 }
 export async function requireProfile() {
  const user = await requireUser();
