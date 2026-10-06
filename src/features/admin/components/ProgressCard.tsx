@@ -23,7 +23,7 @@ interface ProgressCardProps {
 export function ProgressCard({ label, valueLabel, percent }: ProgressCardProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">
         <span className="font-medium text-slate-700">{label}</span>
         <span className="text-slate-500">{valueLabel}</span>
       </div>

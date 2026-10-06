@@ -17,9 +17,9 @@ interface DataTableProps<T> {
 // Components and the client-side participants filter.
 export function DataTable<T>({ columns, rows, getRowKey, emptyMessage = "No data yet." }: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto">
+    <div className="max-w-full overflow-x-auto overscroll-x-contain focus-visible:outline-2 focus-visible:outline-blue-600" tabIndex={0} role="region" aria-label={`${columns[0]?.header ?? "Data"} table, scroll horizontally for more columns`}>
       <table className="w-full min-w-160 text-left text-sm">
-        <thead className="bg-slate-50 text-xs font-medium text-slate-500">
+        <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
           <tr>
             {columns.map((col) => (
               <th key={col.header} scope="col" className={`px-5 py-3 ${col.className ?? ""}`}>

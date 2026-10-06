@@ -1,5 +1,6 @@
 import { DataTable, type Column } from "@/features/admin/components/DataTable";
 import { Panel } from "@/features/admin/components/Panel";
+import { PageHeader } from "@/features/admin/components/PageHeader";
 import { ProgressBar, ProgressCard } from "@/features/admin/components/ProgressCard";
 import { StatCard } from "@/features/admin/components/StatCard";
 import { StatusBadge } from "@/features/admin/components/StatusBadge";
@@ -37,10 +38,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl bg-blue-700 px-6 py-7 text-white shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight">Good morning, Admin</h1>
-        <p className="mt-1 text-sm text-blue-100">Monitor your learning content and participant progress.</p>
-      </section>
+      <PageHeader title="Dashboard" description="Monitor learning content, participant progress, and research outcomes." />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Total Participants" value={String(summary.total)} hint="Registered in this course" />
@@ -49,8 +47,8 @@ export default function AdminDashboardPage() {
         <StatCard label="Average Post-Test Score" value={format(summary.avgPostTest)} hint="Out of 100" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Panel title="Learning progress" className="lg:col-span-2">
+      <div className="grid min-w-0 gap-6 xl:grid-cols-3">
+        <Panel title="Learning progress" className="xl:col-span-2">
           <DataTable columns={progressColumns} rows={participants} getRowKey={(p) => p.id} />
         </Panel>
 
