@@ -1,10 +1,12 @@
 import { getLearningCourses } from "@/server/content";
 import { logoutAction } from "@/features/auth/actions";
+import Link from "next/link";
 
 export default async function LearnPage() {
   const courses = await getLearningCourses();
   return <main className="mx-auto max-w-3xl px-6 py-12">
     <h1 className="text-2xl font-semibold">Learning materials</h1>
+    <nav aria-label="Learning" className="mt-4 flex gap-4 text-sm text-blue-700"><Link href="/learn/progress">Progress</Link><Link href="/learn/results">Results</Link></nav>
     {!courses.length && <p className="mt-6 text-slate-600">No courses available yet.</p>}
     {courses.map(course => <section key={course.id} className="mt-8">
       <h2 className="text-xl font-semibold">{course.title}</h2>

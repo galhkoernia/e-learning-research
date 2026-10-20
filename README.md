@@ -6,7 +6,7 @@ Aplikasi pembelajaran berbasis web untuk menyajikan materi terstruktur dan mengu
 
 Konten awal berfokus pada **Dasar Sistem Hidrolik**. Target pengalaman belajar mencakup materi, video, pre-test, quiz, post-test, serta hasil dan progress peserta dalam satu aplikasi dengan area student dan admin.
 
-Saat ini tersedia landing page, authentication, CRUD materi dan metadata video melalui database, serta pembacaan materi terpublikasi pada `/learn`. Alur pembelajaran lengkap belum tersedia.
+Saat ini tersedia landing page, authentication, CRUD materi/video/soal, dashboard berbasis hitungan database, daftar peserta dengan pencarian/pagination, export profil peserta, serta pembacaan materi terpublikasi pada `/learn`. Alur assessment dan progress belum tersedia.
 
 ## Core Features
 
@@ -15,7 +15,7 @@ Saat ini tersedia landing page, authentication, CRUD materi dan metadata video m
 | Public | Pengenalan pembelajaran dan akses login | Landing page dengan konten statis |
 | Authentication | Login, logout, session, akses berbasis role | Terimplementasi dengan Supabase Auth dan profil aplikasi |
 | Student | Materi, video, assessment, progress, hasil | `/learn` membaca course dan materi `PUBLISHED`; video dan assessment belum tersedia |
-| Admin | Dashboard, konten, soal, peserta, progress, hasil, export | CRUD materi dan metadata video terhubung database; area lainnya masih dummy |
+| Admin | Dashboard, konten, soal, peserta, progress, hasil, export | CRUD konten/soal, statistik konten, profil peserta, dan CSV profil terhubung database; hasil assessment unavailable |
 
 ## User Roles
 
@@ -44,7 +44,9 @@ Login → Dashboard → Materials / Videos / Questions / Participants / Results
 
 Login tersedia di `/login`; `/admin/login` mengarahkan ke halaman yang sama. Dashboard tersedia di `/admin` dan `/admin/dashboard`, dengan halaman lain di `/admin/materials`, `/admin/videos`, `/admin/questions`, `/admin/participants`, dan `/admin/results`.
 
-Halaman Materials dan Videos membaca database dan mendukung tambah/edit/hapus melalui Server Actions. Penghapusan materi ditolak jika masih memiliki video atau soal; course materi yang sudah dibuat tidak dapat dipindahkan. Penghapusan metadata video tidak menghapus file Storage. Dashboard, Questions, Participants, dan Results masih menggunakan data dummy. Preview video dan upload belum tersedia, serta export belum memiliki handler.
+Halaman Materials, Videos, dan Questions membaca database dan mendukung tambah/edit/hapus melalui Server Actions. Penghapusan materi ditolak jika masih memiliki video atau soal; course materi yang sudah dibuat tidak dapat dipindahkan. Penghapusan metadata video tidak menghapus file Storage. Dashboard memakai hitungan database. Participants membaca profil STUDENT dengan search nama/email, pagination 20 baris, dan detail profil. CSV mengekspor halaman peserta aktif dengan filter yang sama; CSV ini bukan export hasil ujian. Preview video dan upload belum tersedia.
+
+Results serta halaman `/learn/progress` dan `/learn/results` menampilkan status unavailable, tanpa skor, persentase, atau aktivitas fiktif. Halaman operasional admin tidak lagi mengimpor dummy data.
 
 ## Tech Stack
 
@@ -167,17 +169,27 @@ Test unit menggunakan mock Prisma dan auth. Test PostgreSQL dilewati kecuali `CO
 - Proteksi server-side untuk area admin dan student.
 - CRUD materi dan metadata video melalui Server Actions, validasi server, pengecekan role, pagination daftar admin, dan loading/error/empty state.
 - Pembacaan course serta judul/deskripsi materi `PUBLISHED` pada `/learn`, tanpa assessment atau progress fiktif.
-- UI admin untuk dashboard, soal, peserta, dan hasil masih menggunakan data dummy.
+- CRUD soal dan opsi melalui transaksi, dengan Multiple Choice 3–4 opsi, True/False Benar/Salah, dan tepat satu jawaban benar.
+- Dashboard menghitung profil STUDENT, course, materi, metadata video, dan soal melalui query agregasi database.
+- Participants menggunakan search/pagination server-side, detail profil STUDENT, dan CSV halaman aktif dengan UTF-8 BOM, tanggal UTC, serta perlindungan formula injection.
 - Schema dan migration untuk profil, course, materi, metadata video, soal, dan opsi jawaban; seed course/materi serta script bootstrap admin.
 
 ### In Development / Planned
 
 - Dashboard student dan workflow pembelajaran dari pre-test hingga result.
 - Isi materi terpisah dari deskripsi, playback video, dan integrasi Supabase Storage dengan akses private.
-- Pengelolaan soal, opsi jawaban, dan peserta melalui mutation server-side.
+- Assessment results, progress peserta, dan export hasil ujian setelah persistence assessment tersedia. Edit/delete/ubah role peserta tidak disediakan.
 - Assessment engine, submit jawaban, dan perhitungan score server-side.
 - Penyimpanan attempt, jawaban peserta, progress, serta hasil; model persistence tersebut belum tersedia.
 - Pelaporan dari data nyata dan export hasil sesuai PRD.
 - Question bank dan learning path yang dapat dikonfigurasi sebagai roadmap lanjutan.
 
 Konten contoh belum konsisten: landing page menampilkan tiga materi, sementara PRD, seed, dan data dummy admin menggunakan dua. Schema juga menetapkan satu video per materi, sedangkan architecture menggambarkan relasi satu materi ke banyak video. README ini mencatat kondisi tersebut tanpa mengubah implementasi atau dokumen rancangan.
+
+### Blocker Phase 05–06
+
+Inspeksi implementasi menemukan Phase 03–04 belum berada dalam repository ini: tidak ada model attempt, jawaban student, progress, service assessment/scoring, atau migration terkait. Hanya migration setup awal yang tersedia. Karena itu, belum dapat diimplementasikan pemilihan attempt, progress berurutan, hasil student, statistik completion, perbandingan cohort pre/post, maupun export hasil ujian dari data nyata.
+
+Penyelesaian memerlukan implementasi Phase 03–04 beserta kebijakan attempt, penyimpanan score/submission, learning sequence, dan bukti completion materi/video. Membuka halaman tidak dianggap menyelesaikan materi atau video. Tidak ada schema atau migration yang diubah/dijalankan dalam tahap reporting ini. Halaman student yang baru hanya memverifikasi role dan menampilkan unavailable; belum merupakan integrasi progress/results.
+
+Verifikasi tahap ini terbatas pada typecheck, lint, build, dan unit test dengan mock auth/Prisma. Database nyata dan browser E2E tidak diuji. Test perhitungan progress, pemilihan attempt, dan agregasi score ditunda karena persistence dan kebijakannya belum tersedia.
