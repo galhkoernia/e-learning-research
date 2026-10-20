@@ -4,7 +4,9 @@ export const ASSESSMENTS = ["PRE_TEST", "QUIZ_1", "QUIZ_2", "POST_TEST"] as cons
 export const ASSESSMENT_LABELS = {
   PRE_TEST: "Pre-Test", QUIZ_1: "Quiz 1", QUIZ_2: "Quiz 2", POST_TEST: "Post-Test",
 } as const;
-export const MAX_OPTIONS = 10;
+export const MIN_MC_OPTIONS = 3;
+export const MAX_MC_OPTIONS = 4;
+export const TRUE_FALSE_LABELS = ["Benar", "Salah"] as const;
 
 export type QuestionOptionInput = { id?: string; label: string; isCorrect: boolean };
 export type QuestionValue = {
@@ -53,8 +55,10 @@ export function questionInput(form: FormData) {
   let rawOptions: unknown;
   try { rawOptions = JSON.parse(text(form, "options", 50000)); }
   catch { throw new ContentError("Invalid answer options."); }
-  if (!Array.isArray(rawOptions) || rawOptions.length < 2 || rawOptions.length > MAX_OPTIONS) {
-    throw new ContentError(`Provide between 2 and ${MAX_OPTIONS} options.`);
+  if (!Array.isArray(rawOptions) || (type === "MULTIPLE_CHOICE"
+    ? rawOptions.length < MIN_MC_OPTIONS || rawOptions.length > MAX_MC_OPTIONS
+    : rawOptions.length !== 2)) {
+    throw new ContentError(type === "MULTIPLE_CHOICE" ? "Multiple choice requires 3 or 4 options (A–C or A–D)." : "True/False requires exactly 2 options: Benar and Salah.");
   }
   const options: QuestionOptionInput[] = rawOptions.map(raw => {
     if (!raw || typeof raw !== "object" || Array.isArray(raw) || Object.keys(raw).some(key => !["id", "label", "isCorrect"].includes(key))) {
@@ -69,7 +73,7 @@ export function questionInput(form: FormData) {
       const idForm = new FormData();
       if (typeof option.id !== "string") throw new ContentError("Invalid option identifier.");
       idForm.set("optionId", option.id);
-      id = identifier(idForm, "optionId");
+      id = identifier(idForm, "optionId").toLowerCase();
     }
     return { ...(id ? { id } : {}), label: option.label.trim(), isCorrect: option.isCorrect };
   });
@@ -77,13 +81,13 @@ export function questionInput(form: FormData) {
   if (new Set(ids).size !== ids.length) throw new ContentError("Duplicate option identifiers.");
   if (new Set(options.map(option => option.label.toLowerCase())).size !== options.length) throw new ContentError("Option text must be distinct.");
   if (options.filter(option => option.isCorrect).length !== 1) throw new ContentError("Select exactly one correct answer.");
-  if (type === "TRUE_FALSE" && (options.length !== 2 || options[0].label !== "True" || options[1].label !== "False")) {
-    throw new ContentError("True/False questions require the True and False options, in that order.");
+  if (type === "TRUE_FALSE" && options.some((option, index) => option.label !== TRUE_FALSE_LABELS[index])) {
+    throw new ContentError("True/False requires Benar and Salah, in that order.");
   }
   // Explicit fields prevent form data from overriding ownership or persistence metadata.
   return {
     courseId: identifier(form, "courseId"), materialId: optionalIdentifier(form, "materialId"),
     assessment: assessment(text(form, "assessment", 20)), position,
     text: text(form, "text", 20000), type, status, options,
-  };
+  } as const;
 }
