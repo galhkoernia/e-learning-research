@@ -6,7 +6,7 @@ Aplikasi pembelajaran berbasis web untuk menyajikan materi terstruktur dan mengu
 
 Konten awal berfokus pada **Dasar Sistem Hidrolik**. Target pengalaman belajar mencakup materi, video, pre-test, quiz, post-test, serta hasil dan progress peserta dalam satu aplikasi dengan area student dan admin.
 
-Saat ini tersedia landing page, integrasi authentication, fondasi database, dan prototipe UI admin. Alur pembelajaran lengkap belum tersedia.
+Saat ini tersedia landing page, authentication, CRUD materi dan metadata video melalui database, serta pembacaan materi terpublikasi pada `/learn`. Alur pembelajaran lengkap belum tersedia.
 
 ## Core Features
 
@@ -14,8 +14,8 @@ Saat ini tersedia landing page, integrasi authentication, fondasi database, dan 
 | --- | --- | --- |
 | Public | Pengenalan pembelajaran dan akses login | Landing page dengan konten statis |
 | Authentication | Login, logout, session, akses berbasis role | Terimplementasi dengan Supabase Auth dan profil aplikasi |
-| Student | Materi, video, assessment, progress, hasil | Route `/learn` terlindungi, masih placeholder |
-| Admin | Dashboard, konten, soal, peserta, progress, hasil, export | UI dengan data dummy; CRUD dan export belum berfungsi |
+| Student | Materi, video, assessment, progress, hasil | `/learn` membaca course dan materi `PUBLISHED`; video dan assessment belum tersedia |
+| Admin | Dashboard, konten, soal, peserta, progress, hasil, export | CRUD materi dan metadata video terhubung database; area lainnya masih dummy |
 
 ## User Roles
 
@@ -34,7 +34,7 @@ Login → Pre-Test → [Material → Video → Quiz] → Post-Test → Result
 
 Bagian dalam kurung diulang untuk setiap materi. PRD awal menargetkan dua materi; schema mendukung daftar materi per course, tetapi tipe quiz masih terbatas pada `QUIZ_1` dan `QUIZ_2`. Alur dinamis penuh belum diimplementasikan.
 
-Saat ini student yang berhasil login diarahkan ke `/learn` dengan pesan “Learning area coming soon”.
+Student yang berhasil login diarahkan ke `/learn` untuk membaca judul dan deskripsi materi terpublikasi. Belum ada model enrollment; semua student dapat membaca materi terpublikasi dari seluruh course. Schema belum memiliki field isi materi terpisah.
 
 ## Admin Flow
 
@@ -44,7 +44,7 @@ Login → Dashboard → Materials / Videos / Questions / Participants / Results
 
 Login tersedia di `/login`; `/admin/login` mengarahkan ke halaman yang sama. Dashboard tersedia di `/admin` dan `/admin/dashboard`, dengan halaman lain di `/admin/materials`, `/admin/videos`, `/admin/questions`, `/admin/participants`, dan `/admin/results`.
 
-Halaman tersebut menampilkan prototipe pengelolaan konten dan pelaporan. Data belum dibaca dari database, dan tombol tambah/edit/hapus, preview video, serta export belum memiliki handler.
+Halaman Materials dan Videos membaca database dan mendukung tambah/edit/hapus melalui Server Actions. Penghapusan materi ditolak jika masih memiliki video atau soal; course materi yang sudah dibuat tidak dapat dipindahkan. Penghapusan metadata video tidak menghapus file Storage. Dashboard, Questions, Participants, dan Results masih menggunakan data dummy. Preview video dan upload belum tersedia, serta export belum memiliki handler.
 
 ## Tech Stack
 
@@ -150,6 +150,14 @@ npm run lint
 npm run build
 ```
 
+Regresi server layer menggunakan Node.js test runner (Node.js 22.15+ untuk loader hooks), tanpa dependency testing tambahan:
+
+```bash
+npm test
+```
+
+Test unit menggunakan mock Prisma dan auth. Test PostgreSQL dilewati kecuali `CONTENT_TEST_DATABASE_URL` diberikan melalui environment shell ke database uji yang telah dimigrasi; jangan gunakan database produksi. Test tersebut memakai auth stub, menjalankan CRUD melalui server layer dalam transaksi yang selalu di-rollback, dan memverifikasi pembacaan ulang serta penolakan penghapusan materi terkait video. Pengujian session Supabase dan interaksi browser tetap memerlukan verifikasi terpisah.
+
 ## Current Status
 
 ### Available
@@ -157,14 +165,16 @@ npm run build
 - Landing page publik dengan komponen modular dan konten statis.
 - Login/logout Supabase, pembaruan session, validasi input login, dan redirect berdasarkan role.
 - Proteksi server-side untuk area admin dan student.
-- UI admin untuk dashboard, materi, video, soal, peserta, dan hasil, termasuk tampilan loading/error; seluruh data operasional masih dummy.
+- CRUD materi dan metadata video melalui Server Actions, validasi server, pengecekan role, pagination daftar admin, dan loading/error/empty state.
+- Pembacaan course serta judul/deskripsi materi `PUBLISHED` pada `/learn`, tanpa assessment atau progress fiktif.
+- UI admin untuk dashboard, soal, peserta, dan hasil masih menggunakan data dummy.
 - Schema dan migration untuk profil, course, materi, metadata video, soal, dan opsi jawaban; seed course/materi serta script bootstrap admin.
 
 ### In Development / Planned
 
 - Dashboard student dan workflow pembelajaran dari pre-test hingga result.
-- Akses materi, playback video, dan integrasi Supabase Storage dengan akses private.
-- Pengelolaan konten, soal, opsi jawaban, dan peserta melalui mutation server-side.
+- Isi materi terpisah dari deskripsi, playback video, dan integrasi Supabase Storage dengan akses private.
+- Pengelolaan soal, opsi jawaban, dan peserta melalui mutation server-side.
 - Assessment engine, submit jawaban, dan perhitungan score server-side.
 - Penyimpanan attempt, jawaban peserta, progress, serta hasil; model persistence tersebut belum tersedia.
 - Pelaporan dari data nyata dan export hasil sesuai PRD.

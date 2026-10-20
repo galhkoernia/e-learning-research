@@ -2,53 +2,35 @@ import { Button } from "@/features/admin/components/Button";
 import { PageHeader } from "@/features/admin/components/PageHeader";
 import { Panel } from "@/features/admin/components/Panel";
 import { StatusBadge } from "@/features/admin/components/StatusBadge";
-import { materials, videos } from "@/features/admin/data";
+import { ContentForm, DeleteContent } from "@/features/admin/components/ContentForm";
+import { VideoFields } from "@/features/admin/components/ContentFields";
+import { ContentPagination, contentPage } from "@/features/admin/components/ContentPagination";
+import { getAdminVideos } from "@/server/content";
 
 export const metadata = { title: "Videos" };
 
-export default function VideosPage() {
-  return (
-    <>
-      <PageHeader
-        title="Videos"
-        description="Manage the video that accompanies each material."
-        action={<Button variant="primary">Add Video</Button>}
-      />
-      <div className="grid gap-6 md:grid-cols-2">
-        {videos.map((v) => {
-          const material = materials.find((m) => m.number === v.materialNumber);
-          return (
-            <Panel key={v.id} className="overflow-hidden">
-              {/* Placeholder until Supabase Storage thumbnails exist. */}
-              <div className="relative flex aspect-video items-center justify-center bg-blue-100">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-blue-700 shadow">
-                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden="true">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </span>
-                <span className="absolute bottom-2 right-2 rounded bg-slate-900/80 px-1.5 py-0.5 text-xs text-white">
-                  {v.duration}
-                </span>
-              </div>
-              <div className="space-y-3 p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-base font-semibold text-slate-900">{v.title}</h2>
-                  <StatusBadge status={v.status} />
-                </div>
-                <p className="text-sm text-slate-600">
-                  Material {v.materialNumber}: {material?.title}
-                </p>
-                <p className="text-xs text-slate-500">Updated {v.updatedAt} by {v.updatedBy}</p>
-                <div className="flex gap-2 pt-1">
-                  <Button size="sm">Preview</Button>
-                  <Button size="sm">Edit</Button>
-                  <Button size="sm" variant="danger">Delete</Button>
-                </div>
-              </div>
-            </Panel>
-          );
-        })}
-      </div>
-    </>
-  );
+export default async function VideosPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const page = contentPage((await searchParams).page);
+  const { videos, total, materials } = await getAdminVideos(page);
+  return <>
+    <PageHeader title="Videos" description="Manage the video metadata that accompanies each material."
+      action={materials.some(m => !m.video) ? <ContentForm kind="video"><VideoFields materials={materials} /></ContentForm> : undefined} />
+    <p className="mb-4 text-sm text-slate-600">Upload and preview are unavailable until private Storage is integrated. One video per material.</p>
+    {!materials.some(m => !m.video) && <p className="mb-4 text-sm text-slate-600">Add a material without a video before creating more video metadata.</p>}
+    {!videos.length && <Panel><p className="p-5 text-sm text-slate-600">No video metadata on this page.</p></Panel>}
+    <div className="grid gap-6 md:grid-cols-2">
+      {videos.map(v => <Panel key={v.id} className="overflow-hidden">
+        <div className="flex aspect-video items-center justify-center bg-blue-100 text-sm text-blue-700">Preview unavailable</div>
+        <div className="space-y-3 p-5">
+          <div className="flex items-start justify-between gap-3"><h2 className="text-base font-semibold text-slate-900">{v.title}</h2><StatusBadge status={v.status === "PUBLISHED" ? "Published" : "Draft"} /></div>
+          <p className="text-sm text-slate-600">{v.material.course.title} / Material {v.material.number}: {v.material.title}</p>
+          <p className="text-xs text-slate-500">Duration: {v.durationSeconds === null ? "Not specified" : `${v.durationSeconds} seconds`}</p>
+          <Button size="sm" disabled>Preview (Storage pending)</Button>
+          <ContentForm kind="video" id={v.id}><VideoFields materials={materials} value={v} /></ContentForm>
+          <DeleteContent kind="video" id={v.id} />
+        </div>
+      </Panel>)}
+    </div>
+    <ContentPagination page={page} total={total} path="/admin/videos" />
+  </>;
 }

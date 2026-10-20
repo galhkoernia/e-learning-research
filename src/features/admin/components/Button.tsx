@@ -23,7 +23,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 // Local to the admin feature so this task does not touch components/ui.
-// Buttons are intentionally handler-less until the backend phase.
 export function Button({ variant = "secondary", size = "md", className = "", ...props }: ButtonProps) {
   return (
     <button
