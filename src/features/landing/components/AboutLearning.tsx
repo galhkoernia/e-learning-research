@@ -17,16 +17,15 @@ export function AboutLearning() {
 
           <div className="space-y-5 text-lg leading-8 text-slate-600">
             <p>
-              Platform ini dirancang untuk memberikan pengalaman belajar
-              yang mengikuti tahapan pemahaman peserta, mulai dari
-              mengetahui kemampuan awal hingga mengevaluasi hasil
-              pembelajaran.
+              Platform ini dirancang untuk memberikan pengalaman belajar yang
+              mengikuti tahapan pemahaman peserta, mulai dari mengetahui
+              kemampuan awal hingga mengevaluasi hasil pembelajaran.
             </p>
 
             <p>
-              Materi, visualisasi, video, dan evaluasi ditempatkan dalam
-              satu alur sehingga peserta dapat memahami konsep secara
-              bertahap dan terukur.
+              Materi, visualisasi, video, dan evaluasi ditempatkan dalam satu
+              alur sehingga peserta dapat memahami konsep secara bertahap dan
+              terukur.
             </p>
           </div>
         </div>

@@ -8,7 +8,8 @@ const BASE =
 
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-blue-600 text-white hover:bg-blue-700",
-  secondary: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+  secondary:
+    "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
   danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
 };
 
@@ -23,7 +24,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 // Local to the admin feature so this task does not touch components/ui.
-export function Button({ variant = "secondary", size = "md", className = "", ...props }: ButtonProps) {
+export function Button({
+  variant = "secondary",
+  size = "md",
+  className = "",
+  ...props
+}: ButtonProps) {
   return (
     <button
       type="button"
