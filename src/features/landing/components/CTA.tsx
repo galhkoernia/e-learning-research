@@ -16,8 +16,8 @@ export function CTA() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-xl leading-7 text-blue-100">
-            Ikuti pembelajaran secara bertahap, pahami materi,
-            dan ukur perkembangan pemahaman Anda.
+            Ikuti pembelajaran secara bertahap, pahami materi, dan ukur
+            perkembangan pemahaman Anda.
           </p>
 
           <div className="mt-8">

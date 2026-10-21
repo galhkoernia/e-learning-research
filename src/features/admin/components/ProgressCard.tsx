@@ -1,4 +1,10 @@
-export function ProgressBar({ percent, label }: { percent: number; label: string }) {
+export function ProgressBar({
+  percent,
+  label,
+}: {
+  percent: number;
+  label: string;
+}) {
   const clamped = Math.min(100, Math.max(0, percent));
   return (
     <div
@@ -9,7 +15,10 @@ export function ProgressBar({ percent, label }: { percent: number; label: string
       aria-valuenow={clamped}
       className="h-2 w-full overflow-hidden rounded-full bg-slate-100"
     >
-      <div className="h-full rounded-full bg-blue-600" style={{ width: `${clamped}%` }} />
+      <div
+        className="h-full rounded-full bg-blue-600"
+        style={{ width: `${clamped}%` }}
+      />
     </div>
   );
 }
@@ -20,7 +29,11 @@ interface ProgressCardProps {
   percent: number;
 }
 
-export function ProgressCard({ label, valueLabel, percent }: ProgressCardProps) {
+export function ProgressCard({
+  label,
+  valueLabel,
+  percent,
+}: ProgressCardProps) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-sm">

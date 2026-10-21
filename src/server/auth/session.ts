@@ -4,33 +4,42 @@ import { createClient } from "@/lib/supabase/server";
 import { getPrisma } from "@/server/db/prisma";
 import { getHomePathForRole } from "./redirects";
 export async function getCurrentUser() {
- try { const supabase = await createClient(); const { data, error } = await supabase.auth.getUser(); return error ? null : data.user; }
- catch {
-  if (process.env.NODE_ENV === "development") console.warn("[auth] Session verification unavailable.");
-  return null;
- }
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+    return error ? null : data.user;
+  } catch {
+    if (process.env.NODE_ENV === "development")
+      console.warn("[auth] Session verification unavailable.");
+    return null;
+  }
 }
 export async function requireUser() {
- const user = await getCurrentUser();
- if (!user) redirect("/login");
- return user;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  return user;
 }
 export async function getProfile(userId: string) {
- try { return await getPrisma().profile.findUnique({ where: { id: userId }, select: { id: true, role: true } }); }
- catch {
-  if (process.env.NODE_ENV === "development") console.warn("[auth] Profile database query failed.");
-  return null;
- }
+  try {
+    return await getPrisma().profile.findUnique({
+      where: { id: userId },
+      select: { id: true, role: true },
+    });
+  } catch {
+    if (process.env.NODE_ENV === "development")
+      console.warn("[auth] Profile database query failed.");
+    return null;
+  }
 }
 export async function requireProfile() {
- const user = await requireUser();
- const profile = await getProfile(user.id);
- // Cookie deletion needs a Server Action or Route Handler.
- if (!profile) redirect("/auth/invalid-profile");
- return profile;
+  const user = await requireUser();
+  const profile = await getProfile(user.id);
+  // Cookie deletion needs a Server Action or Route Handler.
+  if (!profile) redirect("/auth/invalid-profile");
+  return profile;
 }
 export async function requireAdmin() {
- const profile = await requireProfile();
- if (profile.role !== "ADMIN") redirect(getHomePathForRole(profile.role));
- return profile;
+  const profile = await requireProfile();
+  if (profile.role !== "ADMIN") redirect(getHomePathForRole(profile.role));
+  return profile;
 }

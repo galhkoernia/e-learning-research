@@ -8,7 +8,6 @@ export function Footer() {
     <footer className="border-t border-slate-200 bg-white">
       <Container>
         <div className="flex flex-col gap-8 py-10 sm:flex-row sm:items-end sm:justify-between">
-
           <div>
             <Link
               href="/"
@@ -35,7 +34,6 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col gap-4 sm:items-end">
-            
             <div className="flex items-center gap-4">
               <a
                 href="https://github.com/galhkoernia"
